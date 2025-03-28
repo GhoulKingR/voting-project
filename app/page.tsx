@@ -1,36 +1,59 @@
 "use client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent } from "react";
+import { FormEvent, useRef, RefObject } from "react";
 import styled from "styled-components";
 
 
-function submitFactory(router: AppRouterInstance) {
+function submitFactory(router: AppRouterInstance, matricField: RefObject<HTMLInputElement | null>, passwordField: RefObject<HTMLInputElement | null>) {
   return function(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    router.push('/dashboard');
+	fetch("/api/auth/login", {
+		method: "POST",
+		headers: {
+			"Accept": "application/json",
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({
+			matric: matricField.current?.value,
+			password: passwordField.current?.value,
+		}),
+	})
+		.then(res => {
+			if (res.status === 200) {
+				router.push('/dashboard');
+			} else {
+				alert("Couldn't log you in");
+			}
+		})
+		.catch(console.error);
   }
 }
 
 export default function Home() {
   const router = useRouter();
+  const matricField = useRef<HTMLInputElement>(null);
+  const passwordField = useRef<HTMLInputElement>(null);
 
   return (
     <Main>
-      <Form className="rounded-[22px] px-[63px] pt-[15px] pb-[133px] w-[90%] max-w-[646px]" onSubmit={submitFactory(router)}>
+      <Form className="rounded-[22px] px-[63px] pt-[15px] pb-[74px] w-[90%] max-w-[646px]" onSubmit={submitFactory(router, matricField, passwordField)}>
         <Image src="/images/c4bcd117d567f60f81f40bf701cbc96f.png" alt="Logo" width={99.14} height={103} className="mx-auto mb-[12px]" />
         <h1 className="text-[40px] leading-[48px] font-semibold text-center mb-[44px]">Student login</h1>
 
         <label htmlFor="matric-input" className="font-medium text-[14px] leading-[20px] block">Matric/Application Number</label>
-        <Input type="text" placeholder="Enter Matric/Application number" name="username" id="matric-input" className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"/>
+        <Input type="text" placeholder="Enter Matric/Application number" ref={matricField} id="matric-input" className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"/>
 
         <label htmlFor="password-input" className="font-medium text-[14px] leading-[20px] block">Password</label>
-        <Input type="password" id="password-input" name="password" placeholder="Enter your password" className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"/>
+        <Input type="password" id="password-input" ref={passwordField} placeholder="Enter your password" className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"/>
 
         <div className="text-right text-[#0FACFF] font-medium text-[14px] leading-[24px] mb-[24px]">Forgot password</div>
 
-        <button type="submit" className="w-full py-[12px] bg-[#0FACFF] text-white rounded-[8px] font-semibold text-[16px] leading-[24px]">Log In</button>
+        <button type="submit" className="w-full py-[12px] mb-[35px] bg-[#0FACFF] text-white rounded-[8px] font-semibold text-[16px] leading-[24px]">Log In</button>
+
+        <Link href="/admin/login" className="font-medium block text-center underline">Admin Login</Link>
       </Form>
     </Main>
   );
