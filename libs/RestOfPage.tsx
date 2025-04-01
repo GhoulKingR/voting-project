@@ -4,8 +4,7 @@ import Link from "next/link";
 import styled from "styled-components";
 import "@carbon/charts-react/styles.css";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import logout from "./logoutAction";
 
 function mobileLinksControllerFactory(
   showMobileLinks: boolean,
@@ -16,20 +15,12 @@ function mobileLinksControllerFactory(
   };
 }
 
-function logoutFactory(router: AppRouterInstance) {
-  return function () {
-    localStorage.removeItem("token");
-    router.push("/");
-  };
-}
-
 type Prop = {
   children: any;
 };
 
 export default function RestOfPage({ children }: Prop) {
   const [showMobileLinks, setShowMobileLinks] = useState(false);
-  const router = useRouter();
 
   const mySlides = [
     { slide: useRef<HTMLDivElement>(null), dot: useRef<HTMLDivElement>(null) },
@@ -85,16 +76,16 @@ export default function RestOfPage({ children }: Prop) {
 
         <nav className="hidden md:flex justify-between">
           <div className="items-center flex">
-            <Link href="/dashboard" className="mr-[40px]">
+            <Link href="/dashboard" className="cursor-pointer mr-[40px]">
               Home
             </Link>
-            <Link href="/candidates" className="mr-[40px]">
+			{/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
               Candidates
-            </Link>
-            <Link href="/history" className="mr-[40px]">
+            </Link>*/}
+            <Link href="/history" className="cursor-pointer mr-[40px]">
               Voting History
             </Link>
-            <div onClick={logoutFactory(router)} className="mr-[40px] inline">
+            <div onClick={logout} className="cursor-pointer mr-[40px] inline">
               Logout
             </div>
           </div>
@@ -114,25 +105,25 @@ export default function RestOfPage({ children }: Prop) {
             <div className="list mt-[20px]">
               <Link
                 href="/dashboard"
-                className="py-[10px] bg-white text-center text-[12px] font-normal"
+                className="cursor-pointer py-[10px] bg-white text-center text-[12px] font-normal"
               >
                 Home
               </Link>
-              <Link
+			  {/*<Link
                 href="/candidates"
-                className="py-[10px] bg-white text-center text-[12px] font-normal"
+                className="cursor-pointer py-[10px] bg-white text-center text-[12px] font-normal"
               >
                 Candidates
-              </Link>
+              </Link>*/}
               <Link
                 href="/history"
-                className="py-[10px] bg-white text-center text-[12px] font-normal"
+                className="cursor-pointer py-[10px] bg-white text-center text-[12px] font-normal"
               >
                 Voting History
               </Link>
               <div
-                onClick={logoutFactory(router)}
-                className="py-[10px] bg-white text-center text-[12px] font-normal"
+                onClick={logout}
+                className="cursor-pointer py-[10px] bg-white text-center text-[12px] font-normal"
               >
                 Logout
               </div>
@@ -239,16 +230,16 @@ export default function RestOfPage({ children }: Prop) {
         </div>
 
         <div className="justify-center mb-[65px] flex text-[#0FACFF]">
-          <Link href="/dashboard" className="mr-[40px]">
+          <Link href="/dashboard" className="cursor-pointer mr-[40px]">
             Home
           </Link>
-          <Link href="/candidates" className="mr-[40px]">
+		  {/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
             Candidates
-          </Link>
-          <Link href="/history" className="mr-[40px]">
+          </Link>*/}
+          <Link href="/history" className="cursor-pointer mr-[40px]">
             Voting History
           </Link>
-          <div onClick={logoutFactory(router)} className="mr-[40px] inline">
+          <div onClick={logout} className="cursor-pointer mr-[40px] inline">
             Logout
           </div>
         </div>

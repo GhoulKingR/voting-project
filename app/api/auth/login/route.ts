@@ -8,9 +8,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { matric, password, adminLogin } = body;
 
-    // This is where you would validate the credentials
-    // and implement your authentication logic
-
     // Example validation (replace with actual auth logic)
     if (!matric || !password) {
       return NextResponse.json(
@@ -19,28 +16,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Mock successful login (replace with actual authentication)
-    // In a real app, you would:
-    // 1. Check credentials against your database
-    // 2. Generate JWT or session token
-    // 3. Set cookies, etc.
+    if (await validateUser(matric, password)) {
+      const user = await getUser(matric);
+      const admin = user!.admin ? true : false;
 
-    if (validateUser(matric, password)) {
-      const user = getUser(matric);
+      if (admin === adminLogin) {
+        const response = NextResponse.json(
+          { message: "Login successful" },
+          { status: 200 },
+        );
 
-	  if (user.admin === adminLogin)
-		  return NextResponse.json(
-			{
-			  token: generateToken(user),
-			  message: "Login successful",
-			},
-			{ status: 200 },
-		  );
-	  else
-		  return NextResponse.json(
-			  { message: "Not allowed here" },
-			  { status: 403 },
-		  );
+        response.headers.set(
+          "Set-Cookie",
+          `token=${generateToken(user!)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`,
+        );
+
+        return response;
+      } else
+        return NextResponse.json(
+          { message: "Not allowed here" },
+          { status: 403 },
+        );
     } else {
       return NextResponse.json(
         { message: "User name and password invalid" },
@@ -48,6 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500 },

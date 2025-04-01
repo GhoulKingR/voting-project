@@ -1,80 +1,23 @@
-"use client";
 import Image from "next/image";
 import Link from "next/link";
-import styled from "styled-components";
-import "@carbon/charts-react/styles.css";
-import { useEffect, useState } from "react";
 import RestOfPage from "@/libs/RestOfPage";
 import VoteResult from "@/libs/VoteResults";
-import { decode } from "@/libs/ClientJWTUtility";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import { Section1, Section3 } from "@/libs/DashboardComponents";
+import { cookies } from "next/headers";
+import { validateToken } from "@/libs/JWTUtility";
+import { User } from "@/database";
+import { Section4 } from "@/libs/AdminDashboardComponents";
 
-export default function Dashboard() {
-  useEffect(() => {
-    let slideIndex = 0;
-    showSlides();
-
-    function showSlides() {
-      let i;
-      const slides = document.getElementsByClassName("mySlides");
-      const dots = document.getElementsByClassName("dot");
-      for (i = 0; i < slides.length; i++) {
-        // @ts-ignore
-        slides[i].style.display = "none";
-      }
-      slideIndex++;
-      if (slideIndex > slides.length) {
-        slideIndex = 1;
-      }
-      for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace(" active", "");
-      }
-      // @ts-ignore
-      slides[slideIndex - 1].style.display = "block";
-      dots[slideIndex - 1].className += " active";
-      setTimeout(showSlides, 6000); // Change image every 6 seconds
-    }
-  }, []);
-
-  const [user, setUser] = useState<any>({});
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token !== null) {
-      fetch("/api/validate", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-      })
-        .then((res) => {
-          if (res.status === 200) {
-            try {
-              if (decode(token).admin) {
-              	router.push("/admin/dashboard");
-			  }
-            } catch (error) {
-              localStorage.removeItem("token");
-			  router.push("/login");
-            }
-          } else {
-			  localStorage.removeItem("token");
-			  router.push("/login");
-		  }
-        })
-        .catch(console.error);
-    }
-  }, []);
-  
-  useEffect(() => {
-	  const token = localStorage.getItem("token");
-	  if (token) {
-		  setUser(decode(token));
-	  }
-  }, []);
+export default async function Dashboard() {
+  let user = null;
+  try {
+    user = validateToken((await cookies()).get("token")!.value) as User;
+  } catch (error) {
+    console.log(error);
+    redirect("/");
+  }
+  if (user.admin) redirect("/admin/dashboard");
 
   return (
     <RestOfPage>
@@ -94,7 +37,7 @@ export default function Dashboard() {
         </Link>
       </Section1>
 
-      <Section2 className="p-[60px] text-center">
+	  {/*<Section2 className="p-[60px] text-center">
         <h1 className="font-bold text-[40px] leading-[48px] text-[#0FACFF] mb-[24px]">
           Upcoming elections
         </h1>
@@ -146,7 +89,75 @@ export default function Dashboard() {
             </div>
           </Link>
         </div>
-      </Section2>
+      </Section2>*/}
+
+      <Section4 className="text-center py-[60px]">
+        <h1 className="font-bold text-[40px] leading-[48px] text-[#0FACFF] mb-[24px] xl:mb-[60px]">
+          Election categories
+        </h1>
+        <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-[40px] mx-auto size-fit">
+          <li className="w-[340px] relative rounded-[6px] overflow-hidden">
+            <small className="absolute top-0 left-0 text-white rounded-br-[6px] bg-[#FFFFFF40] py-[4px] px-[8px]">
+              Open for voting
+            </small>
+            <Image
+              src="/images/b3fbd77af320cbc6733513de531e033a.png"
+              alt="vote logo"
+              className="w-[340px] h-[340px]"
+              width={340}
+              height={340}
+            />
+            <div className="flex flex-col items-start p-[12px]">
+              <small className="font-normal text-[16px] leading-[24px] mb-[4px]">
+                Department Executives
+              </small>
+              <small className="font-medium text-[20px] leading-[28px]">
+                4 positions open
+              </small>
+            </div>
+          </li>
+          <li className="w-[340px] relative rounded-[6px] overflow-hidden">
+            <small className="absolute top-0 left-0 text-white rounded-br-[6px] bg-[#FFFFFF40] py-[4px] px-[8px]">
+              Open for voting
+            </small>
+            <Image
+              src="/images/b3fbd77af320cbc6733513de531e033a.png"
+              alt="vote logo"
+              className="w-[340px] h-[340px]"
+              width={340}
+              height={340}
+            />
+            <div className="flex flex-col items-start p-[12px]">
+              <small className="font-normal text-[16px] leading-[24px] mb-[4px]">
+                Class Representatives
+              </small>
+              <small className="font-medium text-[20px] leading-[28px]">
+                10 positions open
+              </small>
+            </div>
+          </li>
+          <li className="w-[340px] relative rounded-[6px] overflow-hidden">
+            <small className="absolute top-0 left-0 text-white rounded-br-[6px] bg-[#FFFFFF40] py-[4px] px-[8px]">
+              Open for voting
+            </small>
+            <Image
+              src="/images/b3fbd77af320cbc6733513de531e033a.png"
+              alt="vote logo"
+              className="w-[340px] h-[340px]"
+              width={340}
+              height={340}
+            />
+            <div className="flex flex-col items-start p-[12px]">
+              <small className="font-normal text-[16px] leading-[24px] mb-[4px]">
+                Student Council
+              </small>
+              <small className="font-medium text-[20px] leading-[28px]">
+                7 positions open
+              </small>
+            </div>
+          </li>
+        </ul>
+      </Section4>
 
       <Section3 className="py-[60px]">
         <p className="text-center mb-[24px]">
@@ -165,35 +176,3 @@ export default function Dashboard() {
     </RestOfPage>
   );
 }
-
-const Section1 = styled.section`
-  background-image: url("/images/ae3dc66705e6e9f48b0b6397b95fb991.jpeg");
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-
-  #vote {
-    background: rgba(15, 172, 255, 0.65);
-  }
-`;
-
-const Section2 = styled.section`
-  .vote-card {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 16px;
-  }
-`;
-
-const Section3 = styled.section`
-  border-top: 1px solid #0000001a;
-  border-bottom: 1px solid #0000001a;
-
-  .vote-button {
-    background: rgba(15, 172, 255, 0.65);
-  }
-
-  .vote-card {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 16px;
-  }
-`;

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       const object = validateToken(token);
       return NextResponse.json(object, { status: 200 });
     } catch (error) {
-		console.error(error);
+      console.error(error);
       return NextResponse.json(
         { message: "Invalid token signature" },
         { status: 400 },

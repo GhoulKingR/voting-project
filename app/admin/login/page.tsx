@@ -1,80 +1,54 @@
-"use client";
-import { decode } from "@/libs/ClientJWTUtility";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { getUser, validateUser } from "@/database";
+import { generateToken, validateToken } from "@/libs/JWTUtility";
+import { Form, Input, Main } from "@/libs/LoginComponents";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, RefObject, useEffect, useRef } from "react";
-import styled from "styled-components";
+import { redirect } from "next/navigation";
 
-function submitFactory(
-  router: AppRouterInstance,
-  staffIDField: RefObject<HTMLInputElement | null>,
-  passwordField: RefObject<HTMLInputElement | null>,
-) {
-  return function (e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        matric: staffIDField.current?.value,
-        password: passwordField.current?.value,
-        adminLogin: true,
-      }),
-    })
-      .then(async (res) => {
-        if (res.status === 200) {
-          const data = await res.json();
-          localStorage.setItem("token", data["token"]);
-          router.push("/admin/dashboard");
-        } else {
-          alert("Couldn't log you in");
-        }
-      })
-      .catch(console.error);
-  };
-}
+export default async function AdminLogin({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string }>;
+}) {
+  const error = (await searchParams).error || null;
+  const token = (await cookies()).get("token");
 
-export default function Home() {
-  const router = useRouter();
-
-  const staffIDField = useRef<HTMLInputElement>(null);
-  const passwordField = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token !== null) {
-      fetch("/api/validate", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-      })
-        .then((res) => {
-          if (res.status === 200) {
-            try {
-              if (decode(token).admin) router.push("/admin/dashboard");
-              else router.push("/dashboard");
-            } catch (error) {
-              localStorage.removeItem("token");
-            }
-          } else localStorage.removeItem("token");
-        })
-        .catch(console.error);
+  if (token?.value) {
+    let obj = null;
+    try {
+      obj = validateToken(token.value);
+    } catch (error) {
+      console.log(error);
     }
-  }, []);
+    if (obj !== null) redirect("/admin/dashboard");
+  }
+
+  async function submitForm(formData: FormData) {
+    "use server";
+
+    const staffId = formData.get("staffid")?.toString();
+    const password = formData.get("password")?.toString();
+    const cks = await cookies();
+
+    if (!staffId || !password) {
+      redirect("/admin/login?error=Username+and+password+are+required");
+    }
+
+    if (await validateUser(staffId, password)) {
+      const user = await getUser(staffId);
+      cks.set("token", generateToken(user!));
+      redirect("/admin/dashboard");
+    } else {
+      redirect("/admin/login/?error=Incorrect+username+or+password");
+    }
+  }
 
   return (
     <Main>
       <Form
         className="rounded-[22px] px-[63px] pt-[15px] pb-[74px] w-[90%] max-w-[646px]"
-        onSubmit={submitFactory(router, staffIDField, passwordField)}
+        action={submitForm}
       >
         <Image
           src="/images/c4bcd117d567f60f81f40bf701cbc96f.png"
@@ -86,6 +60,11 @@ export default function Home() {
         <h1 className="text-[40px] leading-[48px] font-semibold text-center mb-[44px]">
           Admin Login
         </h1>
+        {error && (
+          <p style={{ color: "red", display: "block", marginBottom: "10px" }}>
+            {error}
+          </p>
+        )}
 
         <label
           htmlFor="matric-input"
@@ -95,8 +74,8 @@ export default function Home() {
         </label>
         <Input
           type="text"
-          placeholder="Enter Staff ID"
-          ref={staffIDField}
+          placeholder="Enter your Staff ID"
+          name="staffid"
           id="matric-input"
           className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"
         />
@@ -110,7 +89,7 @@ export default function Home() {
         <Input
           type="password"
           id="password-input"
-          ref={passwordField}
+          name="password"
           placeholder="Enter your password"
           className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"
         />
@@ -133,23 +112,3 @@ export default function Home() {
     </Main>
   );
 }
-
-const Main = styled.main`
-  background-image: url("/images/6e2529d06601b42a402d5b2e4ce4ac9e.jpeg");
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const Form = styled.form`
-  background: rgba(255, 255, 255, 0.9);
-`;
-
-const Input = styled.input`
-  border: 1px solid rgba(0, 0, 0, 0.1);
-`;

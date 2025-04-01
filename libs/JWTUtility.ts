@@ -60,7 +60,7 @@ export function validateToken(token: string): Object {
   // Verify signature
   const expectedSignature = createSignature(encodedHeader, encodedPayload);
   if (expectedSignature !== signature) {
-	  console.log(expectedSignature, "------", signature);
+    console.log(expectedSignature, "------", signature);
     throw new Error("Invalid token signature");
   }
 

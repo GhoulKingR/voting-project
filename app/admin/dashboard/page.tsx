@@ -1,65 +1,63 @@
-"use client";
 import Image from "next/image";
 import Link from "next/link";
-import styled from "styled-components";
-import "@carbon/charts-react/styles.css";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import RestOfPage from "@/libs/RestOfPage";
 import VoteResult from "@/libs/VoteResults";
-import { decode } from "@/libs/ClientJWTUtility";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import {
+  Section1,
+  Section2,
+  Section3,
+  Section4,
+} from "@/libs/AdminDashboardComponents";
+import { validateToken } from "@/libs/JWTUtility";
+import { cookies } from "next/headers";
+import { addCandidate, addElection, User } from "@/database";
+import CreateElection from "@/libs/CreateElection";
 
-export default function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string }>;
+}) {
+  let user = null;
+  try {
+    user = validateToken((await cookies()).get("token")!.value) as User;
+  } catch (error) {
+    console.log(error);
+    redirect("/");
+  }
+  if (!user.admin) redirect("/dashboard");
+
+  const message = (await searchParams).message || null;
+
   const electionTypes = [
-    "Department Executives",
-    "Class Representatives",
-    "Student Council",
-    "Other",
+    { id: 0, name: "Department Executives" },
+    { id: 1, name: "Class Representatives" },
+    { id: 2, name: "Student Council" },
+    { id: 3, name: "Other" },
   ];
-  const router = useRouter();
-  const [selectedType, setSelectedType] = useState(-1);
-  const [user, setUser] = useState<any>({});
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token !== null) {
-      fetch("/api/validate", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-      })
-        .then((res) => {
-          if (res.status === 200) {
-            try {
-              if (!decode(token).admin) {
-			  	localStorage.removeItem("token");
-              	router.push("/admin/login");
-			  }
-            } catch (error) {
-              localStorage.removeItem("token");
-			  router.push("/admin/login");
-            }
-          } else {
-			  localStorage.removeItem("token");
-			  router.push("/admin/login");
-		  }
-        })
-        .catch(console.error);
-    }
-  }, []);
-  
-  useEffect(() => {
-	  const token = localStorage.getItem("token");
-	  if (token) {
-		  setUser(decode(token));
-	  }
-  }, []);
+  async function addElectionSubmit(formdata: FormData) {
+    "use server";
+	const electionType = formdata.get("Type of Election")?.toString();
+	if (electionType === undefined) redirect("/admin/dashboard/?message=Election+type+required");
+
+	const electionTitle = formdata.get("title")?.toString();
+	if (electionTitle === undefined) redirect("/admin/dashboard/?message=Election+type+required");
+
+	const electionid = await addElection(electionTitle, electionTypes[parseInt(electionType)].name);
+	for (let i = 0;; i++) {
+		const candidate = formdata.get(`candidate-${i}`)?.toString();
+		if (candidate) {
+			await addCandidate(candidate, electionid);
+		} else break;
+	}
+	redirect("/admin/dashboard/?message=Election+added+successfully");
+  }
 
   return (
     <RestOfPage>
+	  {message && <div className="hidden" onLoad={() => alert(`${message}`)}></div>}
       <Section1 className="p-[60px] text-white text-center -z-1">
         <h1 className="font-bold text-[40px] max-w-[520px] mx-auto mb-[24px]">
           Welcome to CSC Dept. Voting Platform
@@ -88,7 +86,7 @@ export default function Dashboard() {
           </div>
           <div className="md:flex-grow md:mr-[40px]">
             <h1 className="font-bold text-[24px] leading-[32px] mb-[12px]">
-				{ user.name }
+              {user.name}
             </h1>
             <small className="bg-[#D9D9D980] px-[4px] inline-block py-[2px] rounded-[2px] admin-box mb-[12px]">
               Admin
@@ -177,67 +175,7 @@ export default function Dashboard() {
         </ul>
       </Section4>
 
-      <Section5 className="p-[60px]">
-        <div className="max-w-[1142px] mx-auto">
-          <div className="relative md:py-[42px] mb-[60px]">
-            <h1 className="font-semibold text-[30px] mb-[12px]">
-              Create New Election
-            </h1>
-            <small className="font-normal text-[16px] leading-[24px] block mb-[20px]">
-              Set up a new voting campaign
-            </small>
-            <Image
-              src="/images/dfdb19370609486ee24c91b0228efdd2.jpeg"
-              alt="vote"
-              width={4096}
-              height={4096}
-              className="hidden w-[180px] h-[180px] md:block absolute bottom-0 right-0"
-            />
-          </div>
-
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-y-[12px] md:gap-y-[40px] gap-x-[80px]">
-            <div>
-              <label
-                htmlFor="election-title"
-                className="block font-semibold text-[14px] leading-[20px] mb-[4px]"
-              >
-                Election Title
-              </label>
-              <input
-                type="password"
-                placeholder="Enter title..."
-                id="election-title"
-                className="py-[8px] px-[16px] w-full rounded-[6px]"
-              />
-            </div>
-            <div>
-              <label className="block font-semibold text-[14px] leading-[20px] mb-[4px]">
-                Type of Election
-              </label>
-              <div className="grid grid-cols-2 xl:grid-cols-4 gap-[8px]">
-                {electionTypes.map((electionType, j) => (
-                  <div
-                    key={j}
-                    onClick={electionTypeFactory(
-                      j,
-                      selectedType,
-                      setSelectedType,
-                    )}
-                    className={`p-[8px] size-fit bg-[#0000000D] font-normal text-[14px] leading-[20px] cursor-pointer rounded-[6px] mr-[8px] ${selectedType === j ? "type-selected" : ""}`}
-                  >
-                    {electionType}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="md:col-span-2 flex justify-center">
-              <button className="bg-[#0FACFF] rounded-[8px] p-[12px] font-medium text-[16px] leading-[24px] text-white">
-                Add Candidate Details
-              </button>
-            </div>
-          </form>
-        </div>
-      </Section5>
+      <CreateElection addElection={addElectionSubmit} electionTypes={electionTypes} />
 
       <Section3 className="py-[60px]">
         <VoteResult />
@@ -245,73 +183,3 @@ export default function Dashboard() {
     </RestOfPage>
   );
 }
-
-function electionTypeFactory(
-  clicked: number,
-  selectedType: number,
-  setSelectedType: Dispatch<SetStateAction<number>>,
-) {
-  return function () {
-    if (selectedType === clicked) {
-      setSelectedType(-1);
-    } else {
-      setSelectedType(clicked);
-    }
-  };
-}
-
-const Section5 = styled.section`
-  #election-title {
-    border: 1px solid #0000001a;
-  }
-
-  .type-selected {
-    background: #0000002d;
-  }
-`;
-
-const Section1 = styled.section`
-  background-image: url("/images/ae3dc66705e6e9f48b0b6397b95fb991.jpeg");
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: cover;
-
-  #vote {
-    background: rgba(15, 172, 255, 0.65);
-  }
-`;
-
-const Section4 = styled.section`
-  border-bottom: 1px solid #0000001a;
-
-  li {
-    border: 1px solid #0000001a;
-  }
-`;
-
-const Section2 = styled.section`
-  border-bottom: 1px solid #0000001a;
-
-  .vote-card {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 16px;
-  }
-
-  .admin-box {
-    border: 0.5px solid #0000001a;
-  }
-`;
-
-const Section3 = styled.section`
-  border-top: 1px solid #0000001a;
-  border-bottom: 1px solid #0000001a;
-
-  .vote-button {
-    background: rgba(15, 172, 255, 0.65);
-  }
-
-  .vote-card {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 16px;
-  }
-`;
