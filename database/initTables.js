@@ -19,7 +19,8 @@ const sqlite3 = require("sqlite3").verbose();
     db.run(`CREATE TABLE IF NOT EXISTS Election (
             ElectionID INTEGER PRIMARY KEY AUTOINCREMENT,
             ElectionTitle TEXT NOT NULL,
-			ElectionType TEXT NOT NULL
+			ElectionType TEXT NOT NULL,
+			Closed BOOLEAN NOT NULL DEFAULT 0
         )`);
 
     // Create Candidate table

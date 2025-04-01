@@ -12,6 +12,7 @@ type Props = {
     role: string;
     candidates: { id: number; name: string }[];
     selected: number;
+	closed: boolean;
   }[];
 };
 

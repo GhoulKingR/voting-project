@@ -24,6 +24,7 @@ export default async function Vote() {
     role: m.title,
     candidates: m.candidates,
     selected: -1,
+	closed: m.closed,
   }));
   const mappings: { [key: string]: string } = {};
   election.forEach(v => mappings[v.title] = v.id);
