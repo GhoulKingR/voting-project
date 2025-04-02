@@ -107,7 +107,7 @@ export function getUser(userID: string): Promise<User | null> {
 
 export function addUser(userID: string, name: string, password: string, admin: boolean): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const query = `INSERT INTO User (UserID, name, password, admin) VALUES (?, ?, ?, ?)`;
+		const query = "INSERT INTO User (UserID, name, password, admin) VALUES (?, ?, ?, ?)";
 
 		db.run(query, [userID, name, password, admin], function (err) {
 		  if (err) {
