@@ -4,7 +4,6 @@ import RestOfPage from "@/libs/RestOfPage";
 import VoteResult from "@/libs/VoteResults";
 import { redirect } from "next/navigation";
 import {
-  Section1,
   Section2,
   Section3,
   Section4,
@@ -28,7 +27,7 @@ export default async function Dashboard({
   }
   if (!user.admin) redirect("/dashboard");
 
-  const message = (await searchParams).message || null;
+  // const message = (await searchParams).message || null;
 
   const electionTypes = [
     { id: 0, name: "Department Executives" },
@@ -39,25 +38,30 @@ export default async function Dashboard({
 
   async function addElectionSubmit(formdata: FormData) {
     "use server";
-	const electionType = formdata.get("Type of Election")?.toString();
-	if (electionType === undefined) redirect("/admin/dashboard/?message=Election+type+required");
+    const electionType = formdata.get("Type of Election")?.toString();
+    if (electionType === undefined)
+      redirect("/admin/dashboard/?message=Election+type+required");
 
-	const electionTitle = formdata.get("title")?.toString();
-	if (electionTitle === undefined) redirect("/admin/dashboard/?message=Election+type+required");
+    const electionTitle = formdata.get("title")?.toString();
+    if (electionTitle === undefined)
+      redirect("/admin/dashboard/?message=Election+type+required");
 
-	const electionid = await addElection(electionTitle, electionTypes[parseInt(electionType)].name);
-	for (let i = 0;; i++) {
-		const candidate = formdata.get(`candidate-${i}`)?.toString();
-		if (candidate) {
-			await addCandidate(candidate, electionid);
-		} else break;
-	}
-	redirect("/admin/dashboard/?message=Election+added+successfully");
+    const electionid = await addElection(
+      electionTitle,
+      electionTypes[parseInt(electionType)].name,
+    );
+    for (let i = 0; ; i++) {
+      const candidate = formdata.get(`candidate-${i}`)?.toString();
+      if (candidate) {
+        await addCandidate(candidate, electionid);
+      } else break;
+    }
+    redirect("/admin/dashboard/?message=Election+added+successfully");
   }
 
   return (
     <RestOfPage>
-	  {message && <div className="hidden" onLoad={() => alert(`${message}`)}></div>}
+      {/*message && <div className="hidden" onLoad={() => alert(`${message}`)}></div>
       <Section1 className="p-[60px] text-white text-center -z-1">
         <h1 className="font-bold text-[40px] max-w-[520px] mx-auto mb-[24px]">
           Welcome to CSC Dept. Voting Platform
@@ -72,7 +76,7 @@ export default async function Dashboard({
         >
           Vote Now
         </Link>
-      </Section1>
+      </Section1>*/}
 
       <Section2 className="p-[60px]">
         <div className="md:flex max-w-[1100px] mx-auto">
@@ -97,12 +101,12 @@ export default async function Dashboard({
             </small>
           </div>
           <div className="mt-[50px] md:mt-0 flex flex-col items-center">
-            <button className="bg-[#0FACFF] text-white p-[12px] font-medium text-[16px] leading-[24px] rounded-[8px] mb-[12px]">
+            <Link href="#create-election" className="bg-[#0FACFF] text-white p-[12px] font-medium text-[16px] leading-[24px] rounded-[8px] mb-[12px]">
               Create New Election
-            </button>
-            <button className="bg-[#0FACFF] text-white p-[12px] font-medium text-[16px] leading-[24px] rounded-[8px]">
-              View Voting Result
-            </button>
+            </Link>
+            <Link href="/admin/create-student" className="bg-[#0FACFF] text-white p-[12px] font-medium text-[16px] leading-[24px] rounded-[8px]">
+				Create student account
+            </Link>
           </div>
         </div>
       </Section2>
@@ -175,7 +179,10 @@ export default async function Dashboard({
         </ul>
       </Section4>
 
-      <CreateElection addElection={addElectionSubmit} electionTypes={electionTypes} />
+      <CreateElection
+        addElection={addElectionSubmit}
+        electionTypes={electionTypes}
+      />
 
       <Section3 className="py-[60px]">
         <VoteResult />

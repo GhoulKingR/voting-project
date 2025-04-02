@@ -37,7 +37,7 @@ export default async function Dashboard() {
         </Link>
       </Section1>
 
-	  {/*<Section2 className="p-[60px] text-center">
+      {/*<Section2 className="p-[60px] text-center">
         <h1 className="font-bold text-[40px] leading-[48px] text-[#0FACFF] mb-[24px]">
           Upcoming elections
         </h1>

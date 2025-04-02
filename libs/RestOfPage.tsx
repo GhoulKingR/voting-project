@@ -79,7 +79,7 @@ export default function RestOfPage({ children }: Prop) {
             <Link href="/dashboard" className="cursor-pointer mr-[40px]">
               Home
             </Link>
-			{/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
+            {/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
               Candidates
             </Link>*/}
             <Link href="/history" className="cursor-pointer mr-[40px]">
@@ -109,7 +109,7 @@ export default function RestOfPage({ children }: Prop) {
               >
                 Home
               </Link>
-			  {/*<Link
+              {/*<Link
                 href="/candidates"
                 className="cursor-pointer py-[10px] bg-white text-center text-[12px] font-normal"
               >
@@ -233,7 +233,7 @@ export default function RestOfPage({ children }: Prop) {
           <Link href="/dashboard" className="cursor-pointer mr-[40px]">
             Home
           </Link>
-		  {/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
+          {/*<Link href="/candidates" className="cursor-pointer mr-[40px]">
             Candidates
           </Link>*/}
           <Link href="/history" className="cursor-pointer mr-[40px]">

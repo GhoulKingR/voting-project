@@ -75,7 +75,6 @@ export function validateUser(
   password: string,
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
-
     db.get(
       "SELECT * FROM User WHERE UserID = ? AND password = ?",
       [userID, password],
@@ -106,64 +105,99 @@ export function getUser(userID: string): Promise<User | null> {
   });
 }
 
+export function addUser(userID: string, name: string, password: string, admin: boolean): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const query = `INSERT INTO User (UserID, name, password, admin) VALUES (?, ?, ?, ?)`;
+
+		db.run(query, [userID, name, password, admin], function (err) {
+		  if (err) {
+			reject(err);
+		  } else {
+			resolve();
+		  }
+		});
+	});
+}
+
 export function getElection(): Promise<Election[]> {
   return new Promise((resolve, reject) => {
-
     // Query to fetch all elections
-    db.all(`SELECT ElectionID, ElectionTitle, Closed FROM Election`, [], async (err, elections: any) => {
-      if (err) {
-        reject(err);
-        return;
-      }
+    db.all(
+      `SELECT ElectionID, ElectionTitle, Closed FROM Election`,
+      [],
+      async (err, elections: any) => {
+        if (err) {
+          reject(err);
+          return;
+        }
 
-      // Fetch candidates and votes for each election
-      const electionData: Election[] = [];
+        // Fetch candidates and votes for each election
+        const electionData: Election[] = [];
 
-      for (const election of elections) {
-        const electionID = election.ElectionID;
-        const title = election.ElectionTitle;
-		const closed = election.Closed === 1;
+        for (const election of elections) {
+          const electionID = election.ElectionID;
+          const title = election.ElectionTitle;
+          const closed = election.Closed === 1;
 
-        // Fetch candidates for the election
-        const candidates: { id: number; name: string }[] = await new Promise((res, rej) => {
-          db.all(
-            `SELECT CandidateID, CandidateName FROM Candidate WHERE ElectionID = ?`,
-            [electionID],
-            (err, rows) => {
-              if (err) rej(err);
-              else res(rows.map((row: any) => ({ id: row.CandidateID, name: row.CandidateName })));
-            }
+          // Fetch candidates for the election
+          const candidates: { id: number; name: string }[] = await new Promise(
+            (res, rej) => {
+              db.all(
+                `SELECT CandidateID, CandidateName FROM Candidate WHERE ElectionID = ?`,
+                [electionID],
+                (err, rows) => {
+                  if (err) rej(err);
+                  else
+                    res(
+                      rows.map((row: any) => ({
+                        id: row.CandidateID,
+                        name: row.CandidateName,
+                      })),
+                    );
+                },
+              );
+            },
           );
-        });
 
-        // Fetch votes for the election
-        const votes: number[] = [];
-        const voted: string[] = await new Promise((res, rej) => {
-          db.all(
-            `SELECT CandidateID, UserID FROM Vote WHERE ElectionID = ?`,
-            [electionID],
-            (err, rows) => {
-              if (err) rej(err);
-              else {
-                res(rows.map((row: any) => row.UserID.toString())); // Users who voted
-                votes.push(...rows.map((row: any) => row.CandidateID)); // Candidate IDs with votes
-              }
-            }
-          );
-        });
+          // Fetch votes for the election
+          const votes: number[] = [];
+          const voted: string[] = await new Promise((res, rej) => {
+            db.all(
+              `SELECT CandidateID, UserID FROM Vote WHERE ElectionID = ?`,
+              [electionID],
+              (err, rows) => {
+                if (err) rej(err);
+                else {
+                  res(rows.map((row: any) => row.UserID.toString())); // Users who voted
+                  votes.push(...rows.map((row: any) => row.CandidateID)); // Candidate IDs with votes
+                }
+              },
+            );
+          });
 
-        // Push data into electionData array
-        electionData.push({ id: electionID, title, closed, candidates, vote: votes, voted });
-      }
+          // Push data into electionData array
+          electionData.push({
+            id: electionID,
+            title,
+            closed,
+            candidates,
+            vote: votes,
+            voted,
+          });
+        }
 
-      resolve(electionData);
-    });
+        resolve(electionData);
+      },
+    );
   });
 }
 
-export async function castVote(electionID: number, candidateID: number, userID: string): Promise<string> {
+export async function castVote(
+  electionID: number,
+  candidateID: number,
+  userID: string,
+): Promise<string> {
   return new Promise((resolve, reject) => {
-
     // Check if the user has already voted in this election
     db.get(
       `SELECT * FROM Vote WHERE ElectionID = ? AND UserID = ?`,
@@ -189,14 +223,17 @@ export async function castVote(electionID: number, candidateID: number, userID: 
             } else {
               resolve("✅ Vote successfully recorded!");
             }
-          }
+          },
         );
-      }
+      },
     );
   });
 }
 
-export function addElection(electionTitle: string, electionType: string): Promise<number> {
+export function addElection(
+  electionTitle: string,
+  electionType: string,
+): Promise<number> {
   return new Promise((resolve, reject) => {
     const query = `INSERT INTO Election (ElectionTitle, ElectionType) VALUES (?, ?)`;
 
@@ -210,7 +247,10 @@ export function addElection(electionTitle: string, electionType: string): Promis
   });
 }
 
-export function addCandidate(candidateName: string, electionID: number): Promise<number> {
+export function addCandidate(
+  candidateName: string,
+  electionID: number,
+): Promise<number> {
   return new Promise((resolve, reject) => {
     const query = `INSERT INTO Candidate (CandidateName, ElectionID) VALUES (?, ?)`;
 
@@ -232,24 +272,28 @@ type ElectionWithVotes = {
 export function getElectionsWithVotes(): Promise<ElectionWithVotes[]> {
   return new Promise((resolve, reject) => {
     // Query all elections
-    db.all(`SELECT ElectionID, ElectionTitle FROM Election`, [], async (err, elections: any) => {
-      if (err) {
-        reject(err);
-        return;
-      }
+    db.all(
+      `SELECT ElectionID, ElectionTitle FROM Election`,
+      [],
+      async (err, elections: any) => {
+        if (err) {
+          reject(err);
+          return;
+        }
 
-      // Array to store election results
-      const electionResults: ElectionWithVotes[] = [];
+        // Array to store election results
+        const electionResults: ElectionWithVotes[] = [];
 
-      // Loop through each election
-      for (const election of elections) {
-        const electionID = election.ElectionID;
-        const title = election.ElectionTitle;
+        // Loop through each election
+        for (const election of elections) {
+          const electionID = election.ElectionID;
+          const title = election.ElectionTitle;
 
-        // Fetch candidates and their vote counts
-        const candidates: { id: number; name: string; votes: number }[] = await new Promise((res, rej) => {
-          db.all(
-            `
+          // Fetch candidates and their vote counts
+          const candidates: { id: number; name: string; votes: number }[] =
+            await new Promise((res, rej) => {
+              db.all(
+                `
             SELECT c.CandidateID, c.CandidateName, 
                    COALESCE(COUNT(v.CandidateID), 0) AS voteCount
             FROM Candidate c
@@ -257,20 +301,28 @@ export function getElectionsWithVotes(): Promise<ElectionWithVotes[]> {
             WHERE c.ElectionID = ?
             GROUP BY c.CandidateID
             `,
-            [electionID],
-            (err, rows: any) => {
-              if (err) rej(err);
-              else res(rows.map((row: any) => ({ id: row.CandidateID, name: row.CandidateName, votes: row.voteCount })));
-            }
-          );
-        });
+                [electionID],
+                (err, rows: any) => {
+                  if (err) rej(err);
+                  else
+                    res(
+                      rows.map((row: any) => ({
+                        id: row.CandidateID,
+                        name: row.CandidateName,
+                        votes: row.voteCount,
+                      })),
+                    );
+                },
+              );
+            });
 
-        // Store election data
-        electionResults.push({ title, candidates });
-      }
+          // Store election data
+          electionResults.push({ title, candidates });
+        }
 
-      resolve(electionResults);
-    });
+        resolve(electionResults);
+      },
+    );
   });
 }
 
@@ -298,19 +350,27 @@ export function getElectionForUser(userID: string): Promise<Election[]> {
         for (const election of elections) {
           const electionID = election.ElectionID;
           const title = election.ElectionTitle;
-		  const closed = election.Closed;
+          const closed = election.Closed;
 
           // Fetch candidates for the election
-          const candidates: { id: number; name: string }[] = await new Promise((res, rej) => {
-            db.all(
-              `SELECT CandidateID, CandidateName FROM Candidate WHERE ElectionID = ?`,
-              [electionID],
-              (err, rows: any) => {
-                if (err) rej(err);
-                else res(rows.map((row: any) => ({ id: row.CandidateID, name: row.CandidateName })));
-              }
-            );
-          });
+          const candidates: { id: number; name: string }[] = await new Promise(
+            (res, rej) => {
+              db.all(
+                `SELECT CandidateID, CandidateName FROM Candidate WHERE ElectionID = ?`,
+                [electionID],
+                (err, rows: any) => {
+                  if (err) rej(err);
+                  else
+                    res(
+                      rows.map((row: any) => ({
+                        id: row.CandidateID,
+                        name: row.CandidateName,
+                      })),
+                    );
+                },
+              );
+            },
+          );
 
           // Fetch votes for the election
           const votes: number[] = [];
@@ -324,16 +384,23 @@ export function getElectionForUser(userID: string): Promise<Election[]> {
                   res(rows.map((row: any) => row.UserID)); // Users who voted
                   votes.push(...rows.map((row: any) => row.CandidateID)); // Candidate IDs with votes
                 }
-              }
+              },
             );
           });
 
           // Push data into electionData array
-          electionData.push({ id: electionID, title, closed, candidates, vote: votes, voted });
+          electionData.push({
+            id: electionID,
+            title,
+            closed,
+            candidates,
+            vote: votes,
+            voted,
+          });
         }
 
         resolve(electionData);
-      }
+      },
     );
   });
 }
@@ -341,28 +408,36 @@ export function getElectionForUser(userID: string): Promise<Election[]> {
 export function closeElection(electionId: number): Promise<void> {
   return new Promise((resolve, reject) => {
     // Validate the election ID
-    if (!electionId || typeof electionId !== 'number' || electionId <= 0) {
-      return reject(new Error('Invalid election ID'));
+    if (!electionId || typeof electionId !== "number" || electionId <= 0) {
+      return reject(new Error("Invalid election ID"));
     }
 
     // First check if the election exists
-    db.get('SELECT ElectionID FROM Election WHERE ElectionID = ?', [electionId], (err: Error, row: any) => {
-      if (err) {
-        return reject(err);
-      }
-      
-      if (!row) {
-        return reject(new Error(`Election with ID ${electionId} not found`));
-      }
-      
-      // If election exists, update its closed status
-      db.run('UPDATE Election SET Closed = 1 WHERE ElectionID = ?', [electionId], (updateErr: Error) => {
-        if (updateErr) {
-          return reject(updateErr);
+    db.get(
+      "SELECT ElectionID FROM Election WHERE ElectionID = ?",
+      [electionId],
+      (err: Error, row: any) => {
+        if (err) {
+          return reject(err);
         }
-        
-        resolve();
-      });
-    });
+
+        if (!row) {
+          return reject(new Error(`Election with ID ${electionId} not found`));
+        }
+
+        // If election exists, update its closed status
+        db.run(
+          "UPDATE Election SET Closed = 1 WHERE ElectionID = ?",
+          [electionId],
+          (updateErr: Error) => {
+            if (updateErr) {
+              return reject(updateErr);
+            }
+
+            resolve();
+          },
+        );
+      },
+    );
   });
 }

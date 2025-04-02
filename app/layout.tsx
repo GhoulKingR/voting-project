@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 // const roboto = Roboto({
-  // variable: "--font-geist-sans",
-  // subsets: ["latin"],
+// variable: "--font-geist-sans",
+// subsets: ["latin"],
 // });
 
 export const metadata: Metadata = {
@@ -27,7 +27,9 @@ export default function RootLayout({
         crossOrigin="anonymous"
       /> */}
       </head>
-      <body className={`${/*roboto.variable*/ ""} antialiased`}>{children}</body>
+      <body className={`${/*roboto.variable*/ ""} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }

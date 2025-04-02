@@ -17,20 +17,28 @@ export default async function Vote() {
   }
 
   const election = (await getElection()).reverse();
-  
+
   async function markAsClosed(id: number) {
-	  "use server";
-	  closeElection(id);
-	  redirect("/history");
+    "use server";
+    closeElection(id);
+    redirect("/history");
   }
 
   return (
-      <RestOfPage>
-	  {[...election.filter(e => !e.closed), ...election.filter(e => e.closed)].map((e, i) => {
-		  return (
-			  <CandidateEntry e={e} key={i} user={user} markAsClosed={markAsClosed}/>
-		  );
-	  })}
-      </RestOfPage>
+    <RestOfPage>
+      {[
+        ...election.filter((e) => !e.closed),
+        ...election.filter((e) => e.closed),
+      ].map((e, i) => {
+        return (
+          <CandidateEntry
+            e={e}
+            key={i}
+            user={user}
+            markAsClosed={markAsClosed}
+          />
+        );
+      })}
+    </RestOfPage>
   );
 }

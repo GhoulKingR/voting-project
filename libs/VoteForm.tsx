@@ -12,7 +12,7 @@ type Props = {
     role: string;
     candidates: { id: number; name: string }[];
     selected: number;
-	closed: boolean;
+    closed: boolean;
   }[];
 };
 
@@ -31,44 +31,50 @@ export default function VoteForm({ submitVote, candidates }: Props) {
         Select your preferred candidate below
       </small>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const newInfo: any = { dialog: true, data: {} };
+      {candidates.length > 0 ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const newInfo: any = { dialog: true, data: {} };
 
-          const formdata = new FormData(e.currentTarget);
-		  console.log([...formdata.keys()], [...formdata.values()]);
-          formData.current = formdata;
-          for (let c of candidates) {
-            for (let cc of c.candidates) {
-              if (cc.id.toString() === formdata.get(c.role)?.toString()) {
-                newInfo["data"][c.role] = cc.name;
-                break;
+            const formdata = new FormData(e.currentTarget);
+            console.log([...formdata.keys()], [...formdata.values()]);
+            formData.current = formdata;
+            for (let c of candidates) {
+              for (let cc of c.candidates) {
+                if (cc.id.toString() === formdata.get(c.role)?.toString()) {
+                  newInfo["data"][c.role] = cc.name;
+                  break;
+                }
               }
             }
-          }
 
-          setDialogInfo(newInfo);
-        }}
-        className="grid grid-cols-1 md:grid-cols-2 max-w-[968px] w-[90%] mx-auto gap-x-[80px] gap-y-[40px] mb-[40px]"
-      >
-        {candidates.map((roles, i) => {
-          return (
-            <CandidateSelect
-              role={roles.role}
-              key={i}
-              candidates={roles.candidates}
-            />
-          );
-        })}
-
-        <button
-          type="submit"
-          className="md:col-span-2 vote-button py-[12px] px-[85px] mx-auto block rounded-[8px] font-semibold text-[16px] text-white"
+            setDialogInfo(newInfo);
+          }}
+          className="grid grid-cols-1 md:grid-cols-2 max-w-[968px] w-[90%] mx-auto gap-x-[80px] gap-y-[40px] mb-[40px]"
         >
-          Submit Vote
-        </button>
-      </form>
+          {candidates.map((roles, i) => {
+            return (
+              <CandidateSelect
+                role={roles.role}
+                key={i}
+                candidates={roles.candidates}
+              />
+            );
+          })}
+
+          <button
+            type="submit"
+            className="md:col-span-2 vote-button py-[12px] px-[85px] mx-auto block rounded-[8px] font-semibold text-[16px] text-white"
+          >
+            Submit Vote
+          </button>
+        </form>
+      ) : (
+        <div className="text-center font-medium text-[20px] italic mx-auto">
+          No elections to vote for
+        </div>
+      )}
 
       {dialogInfo?.dialog && (
         <Dialog

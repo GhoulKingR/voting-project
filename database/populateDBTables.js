@@ -42,26 +42,34 @@ const elections = {
 // Function to insert an election and return its ID
 function insertElection(title) {
   return new Promise((resolve, reject) => {
-    db.run(`INSERT INTO Election (ElectionTitle, ElectionType) VALUES (?, "Department Executives")`, [title], function (err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(this.lastID); // Return the new election's ID
-      }
-    });
+    db.run(
+      `INSERT INTO Election (ElectionTitle, ElectionType) VALUES (?, "Department Executives")`,
+      [title],
+      function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID); // Return the new election's ID
+        }
+      },
+    );
   });
 }
 
 // Function to insert a candidate
 function insertCandidate(name, electionID) {
   return new Promise((resolve, reject) => {
-    db.run(`INSERT INTO Candidate (CandidateName, ElectionID) VALUES (?, ?)`, [name, electionID], function (err) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(this.lastID); // Return new Candidate ID
-      }
-    });
+    db.run(
+      `INSERT INTO Candidate (CandidateName, ElectionID) VALUES (?, ?)`,
+      [name, electionID],
+      function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(this.lastID); // Return new Candidate ID
+        }
+      },
+    );
   });
 }
 
@@ -79,7 +87,9 @@ async function populateDatabase() {
       // Insert Candidates
       for (const candidate of election.candidates) {
         const candidateID = await insertCandidate(candidate.name, electionID);
-        console.log(`Candidate "${candidate.name}" added with ID: ${candidateID}`);
+        console.log(
+          `Candidate "${candidate.name}" added with ID: ${candidateID}`,
+        );
       }
     }
 

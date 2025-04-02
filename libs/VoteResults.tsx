@@ -12,12 +12,14 @@ export default async function VoteResult() {
   return (
     <>
       <div className="overflow-x-scroll">
-	  	<div className="w-[80%] min-w-[768px] max-w-[1100px] h-fit mx-auto mb-[20px] font-bold text-[40px] leading-[48px]">{selected.title}</div>
+        <div className="w-[80%] min-w-[768px] max-w-[1100px] h-fit mx-auto mb-[20px] font-bold text-[40px] leading-[48px]">
+          {selected.title}
+        </div>
         <div className="w-[80%] min-w-[768px] max-w-[1100px] h-fit mx-auto mb-[60px]">
           <Chart data={data} />
         </div>
       </div>
-	  {/*<div className="py-[20px] flex justify-between w-[90%] max-w-[1100px] mx-auto">
+      {/*<div className="py-[20px] flex justify-between w-[90%] max-w-[1100px] mx-auto">
         <div className="text-left vote-card w-[46%] max-w-[540px] rounded-[6px]">
           <h2 className="font-normal text-[16px] leading-[24px] mb-[8px] text-[#00000080]">
             Voter Turnout

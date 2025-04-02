@@ -1,5 +1,5 @@
-import { getUser, validateUser } from "@/database";
-import { generateToken, validateToken } from "@/libs/JWTUtility";
+import { addUser } from "@/database";
+import { validateToken } from "@/libs/JWTUtility";
 import { Form, Input, Main } from "@/libs/LoginComponents";
 import { cookies } from "next/headers";
 import Image from "next/image";
@@ -12,36 +12,36 @@ export default async function AdminLogin({
   searchParams: Promise<{ [key: string]: string }>;
 }) {
   const error = (await searchParams).error || null;
-  const token = (await cookies()).get("token");
-
-  if (token?.value) {
-    let obj = null;
-    try {
-      obj = validateToken(token.value);
-    } catch (error) {
-      console.log(error);
-    }
-    if (obj !== null) redirect("/admin/dashboard");
+  const message = (await searchParams).message || null;
+  let user = null;
+  try {
+    user = validateToken((await cookies()).get("token")!.value) as any;
+  } catch (error) {
+    console.log(error);
+    redirect("/");
   }
+  if (!user.admin) redirect("/?error=Only+admins+can+add+students");
 
   async function submitForm(formData: FormData) {
     "use server";
 
-    const staffId = formData.get("staffid")?.toString();
+    const matricNumber = formData.get("matric-number")?.toString();
+    const name = formData.get("name")?.toString();
     const password = formData.get("password")?.toString();
     const cks = await cookies();
 
-    if (!staffId || !password) {
-      redirect("/admin/login?error=StaffId+and+password+are+required");
+    if (!matricNumber || !name || !password) {
+      redirect("/admin/create-student?error=Matric/Application+number+and+password+are+required");
     }
 
-    if (await validateUser(staffId, password)) {
-      const user = await getUser(staffId);
-      cks.set("token", generateToken(user!));
-      redirect("/admin/dashboard");
-    } else {
-      redirect("/admin/login/?error=Incorrect+username+or+password");
-    }
+	try{
+		validateToken(cks.get("token")!.value);
+		addUser(matricNumber, name, password, false);
+	  } catch (error) {
+		console.log(error);
+		redirect("/admin/create-student?error=Failed+to+add+student.+Check+that+there+isn't+already+isn't+already+an+account+with+the+same+matric+number");
+	  }
+	redirect("/admin/create-student?message=Student+account+created+successfully");
   }
 
   return (
@@ -50,6 +50,8 @@ export default async function AdminLogin({
         className="rounded-[22px] px-[63px] pt-[15px] pb-[74px] w-[90%] max-w-[646px]"
         action={submitForm}
       >
+	  	<Link href="/admin/dashboard" className="block mt-[20px] mb-[10px] underline text-[#0FACFF]">&lt; Back</Link>
+
         <Image
           src="/images/c4bcd117d567f60f81f40bf701cbc96f.png"
           alt="Logo"
@@ -58,11 +60,16 @@ export default async function AdminLogin({
           className="mx-auto mb-[12px]"
         />
         <h1 className="text-[40px] leading-[48px] font-semibold text-center mb-[44px]">
-          Admin Login
+			Add a student
         </h1>
         {error && (
           <p style={{ color: "red", display: "block", marginBottom: "10px" }}>
             {error}
+          </p>
+        )}
+        {message && (
+          <p style={{ color: "green", display: "block", marginBottom: "10px" }}>
+            {message}
           </p>
         )}
 
@@ -70,13 +77,27 @@ export default async function AdminLogin({
           htmlFor="matric-input"
           className="font-medium text-[14px] leading-[20px] block"
         >
-          Staff ID
+          Student Matric/Application Number
         </label>
         <Input
           type="text"
-          placeholder="Enter your Staff ID"
-          name="staffid"
+          placeholder="Enter student Matric/Application Number"
+          name="matric-number"
           id="matric-input"
+          className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"
+        />
+
+        <label
+          htmlFor="student-name"
+          className="font-medium text-[14px] leading-[20px] block"
+        >
+          Student Name
+        </label>
+        <Input
+          type="text"
+          placeholder="Enter Student Name"
+          name="name"
+          id="student-name"
           className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"
         />
 
@@ -90,24 +111,16 @@ export default async function AdminLogin({
           type="password"
           id="password-input"
           name="password"
-          placeholder="Enter your password"
+          placeholder="Enter student password"
           className="block w-full bg-white rounded-[6px] py-[8px] px-[12px] mb-[40px]"
         />
-
-        <div className="text-right text-[#0FACFF] font-medium text-[14px] leading-[24px] mb-[24px]">
-          Forgot password
-        </div>
 
         <button
           type="submit"
           className="w-full py-[12px] mb-[35px] bg-[#0FACFF] text-white rounded-[8px] font-semibold text-[16px] leading-[24px]"
         >
-          Log In
+			Create Student Account
         </button>
-
-        <Link href="/" className="font-medium block text-center underline">
-          Student Login
-        </Link>
       </Form>
     </Main>
   );

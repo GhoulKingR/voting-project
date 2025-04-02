@@ -19,34 +19,34 @@ export default async function Vote() {
     redirect("/?error=You+have+to+log+in+first");
   }
 
-  const election = await getElectionForUser((user as any).id)
+  const election = await getElectionForUser((user as any).id);
   const candidates = election.map((m) => ({
     role: m.title,
     candidates: m.candidates,
     selected: -1,
-	closed: m.closed,
+    closed: m.closed,
   }));
   const mappings: { [key: string]: string } = {};
-  election.forEach(v => mappings[v.title] = v.id);
+  election.forEach((v) => (mappings[v.title] = v.id));
 
   if (user.admin === 1) redirect("/?error=Admins+cant+vote");
 
   async function submitVote(formdata: FormData) {
     "use server";
-	// generate a database-side function to add a vote to the database and then attach it to this
-	
-	try {
-		for (let key of formdata.keys()) {
-			const canID = parseInt(formdata.get(key)!.toString());
-			if (canID <= 0) continue;
+    // generate a database-side function to add a vote to the database and then attach it to this
 
-			const elecID = parseInt(mappings[key]);
-			await castVote(elecID, canID, user!.id); // Example: Election ID 1, Candidate ID 2, UserID "user123"
-			console.log("Vote for", key, "casted");
-		}
-	  } catch (error) {
-		console.error("Error:", error);
-	  }
+    try {
+      for (let key of formdata.keys()) {
+        const canID = parseInt(formdata.get(key)!.toString());
+        if (canID <= 0) continue;
+
+        const elecID = parseInt(mappings[key]);
+        await castVote(elecID, canID, user!.id); // Example: Election ID 1, Candidate ID 2, UserID "user123"
+        console.log("Vote for", key, "casted");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
   return (
@@ -89,10 +89,7 @@ export default async function Vote() {
           </p>
         </section>
 
-        <VoteForm
-          submitVote={submitVote}
-          candidates={candidates}
-        />
+        <VoteForm submitVote={submitVote} candidates={candidates} />
 
         <Section3 className="py-[60px]">
           <h1 className="text-center font-bold text-[40px] leading-[48px] mb-[24px]">
@@ -101,7 +98,10 @@ export default async function Vote() {
           <small className="block text-center font-normal text-[16px] leading-[24px] mb-[33px]">
             Track the voting turnout and results
           </small>
-          <Link href="/history" className="vote-button size-fit py-[12px] px-[85px] mx-auto block rounded-[8px] font-semibold text-[16px] text-white mb-[60px]">
+          <Link
+            href="/history"
+            className="vote-button size-fit py-[12px] px-[85px] mx-auto block rounded-[8px] font-semibold text-[16px] text-white mb-[60px]"
+          >
             View Details
           </Link>
 

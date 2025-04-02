@@ -11,7 +11,6 @@ type Props = {
 };
 
 export default function CreateElection({ addElection, electionTypes }: Props) {
-
   const [candidates, setCandidates] = useState<number[]>([]);
 
   return (

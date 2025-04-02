@@ -32,7 +32,7 @@ export default async function Home({
     const cks = await cookies();
 
     if (!matric || !password) {
-      redirect("/?error=Username+and+password+are+required");
+      redirect("/?error=Matric/Application+number+and+password+are+required");
     }
 
     if (await validateUser(matric, password)) {
